@@ -1,5 +1,3 @@
-// pages/register/page.js
-
 'use client'
 
 import { useState } from 'react';
@@ -15,7 +13,7 @@ export default function Register() {
     email: '',
     password: '',  // password will be skipped for validation
   });
-  const router = useRouter();  
+  const router = useRouter();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
@@ -27,8 +25,41 @@ export default function Register() {
     });
   };
 
+  // Function to validate the username, password, and names
+  const validateForm = () => {
+    const { username, firstName, lastName, password } = formData;
+    
+    // Username: Can't start with a number
+    const usernameRegex = /^[A-Za-z][A-Za-z0-9]*$/;
+    if (!usernameRegex.test(username)) {
+      setError("Username cannot start with a number.");
+      return false;
+    }
+
+    // First Name and Last Name: Only alphabetic characters
+    const nameRegex = /^[A-Za-z]+$/;
+    if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
+      setError("First name and last name can only contain alphabetic characters.");
+      return false;
+    }
+
+    // Password: At least 8 characters, 1 uppercase, 1 special character, and 1 number
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setError("Password must be at least 8 characters long, include at least one uppercase letter, one special character, and one number.");
+      return false;
+    }
+
+    // Clear error if all validations pass
+    setError('');
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate form before submission
+    if (!validateForm()) return;
 
     // Convert fields (except password) to lowercase before logging
     const formDataLowercase = {
@@ -44,9 +75,12 @@ export default function Register() {
       setSuccess(true);  // Set success state to true on successful registration
       setError(''); // Clear any previous errors
       console.log('Registration response:', response);
+
+      // Redirect to login page after successful registration (optional)
+      
     } catch (err) {
       setSuccess(false);
-      setError('Registration failed. Please try again later.');  // Set error message
+      setError(err.message || 'Registration failed. Please try again later.');  // Display the specific error message
       console.error('Registration error:', err);
     }
   };
@@ -66,7 +100,7 @@ export default function Register() {
         )}
         {success && (
           <div className="bg-green-500 text-white p-2 rounded mb-4 text-center">
-            Registration successful! Please check your email for verification.
+            Registration successful! Please check your email for login details.
           </div>
         )}
 
@@ -189,3 +223,4 @@ export default function Register() {
     </div>
   );
 }
+

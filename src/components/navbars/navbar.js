@@ -16,7 +16,9 @@ const Navbar = () => {
           </ul>
         </div>
         <div>
-          <a href="shrinkit/login" className="text-white bg-blue-800 px-4 py-2 rounded-md hover:bg-blue-700">Login</a>
+        <Link href="/shrinkit/login" className="text-white bg-blue-800 px-4 py-2 rounded-md hover:bg-blue-700">
+    Login
+  </Link>
         </div>
       </div>
     </nav>

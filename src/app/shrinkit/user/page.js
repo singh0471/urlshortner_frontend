@@ -1,4 +1,6 @@
-'use client'
+'use client';
+
+import Link from 'next/link';
 
 export default function UserHomePage() {
   return (
@@ -15,45 +17,45 @@ export default function UserHomePage() {
       </div>
 
       {/* Container for the Button Grid */}
-      <div className="w-full max-w-screen-xl px-6 py-8 bg-white bg-opacity-80 rounded-lg shadow-xl mx-auto">
+      <div className="w-full max-w-3xl px-6 py-8 bg-white bg-opacity-80 rounded-lg shadow-xl mx-auto">
         
         {/* Button Grid Layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           
           {/* Button 1: Generate Short URL */}
-          <div className="w-full flex justify-center">
-            <a href="/user/generate-url">
-              <button className="w-full md:w-64 h-32 px-4 py-4 bg-blue-600 text-white text-base font-semibold rounded-lg shadow-lg hover:bg-blue-500 transition duration-300">
+          <div className="flex justify-center">
+            <Link href="/shrinkit/user/generate-url">
+              <button className="w-48 h-32 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-blue-500 transition duration-300">
                 Generate Short URL
               </button>
-            </a>
+            </Link>
           </div>
 
           {/* Button 2: My Plans */}
-          <div className="w-full flex justify-center">
-            <a href="/user/plans">
-              <button className="w-full md:w-64 h-32 px-4 py-4 bg-blue-600 text-white text-base font-semibold rounded-lg shadow-lg hover:bg-blue-500 transition duration-300">
+          <div className="flex justify-center">
+            <Link href="/shrinkit/user/my-plans">
+              <button className="w-48 h-32 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-blue-500 transition duration-300">
                 My Plans
               </button>
-            </a>
+            </Link>
           </div>
 
           {/* Button 3: My URLs */}
-          <div className="w-full flex justify-center">
-            <a href="/user/urls">
-              <button className="w-full md:w-64 h-32 px-4 py-4 bg-blue-600 text-white text-base font-semibold rounded-lg shadow-lg hover:bg-blue-500 transition duration-300">
+          <div className="flex justify-center">
+            <Link href="/shrinkit/user/urls">
+              <button className="w-48 h-32 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-blue-500 transition duration-300">
                 My URLs
               </button>
-            </a>
+            </Link>
           </div>
 
           {/* Button 4: Query */}
-          <div className="w-full flex justify-center">
-            <a href="/user/query">
-              <button className="w-full md:w-64 h-32 px-4 py-4 bg-blue-600 text-white text-base font-semibold rounded-lg shadow-lg hover:bg-blue-500 transition duration-300">
+          <div className="flex justify-center">
+            <Link href="/shrinkit/user/query">
+              <button className="w-48 h-32 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-blue-500 transition duration-300">
                 Query
               </button>
-            </a>
+            </Link>
           </div>
 
         </div>

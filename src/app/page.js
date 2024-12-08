@@ -15,7 +15,7 @@ export default function Home() {
 
          
         <p className="text-2xl font-semibold mt-6">
-          Start your journey...
+          Start your journey... create your account now and get free trial.
         </p>
 
          

@@ -3,10 +3,9 @@
 import './globals.css';
 import { usePathname } from 'next/navigation';   
 
- 
-import Navbar from '../components/navbars/navbar'; 
-import AdminNavbar from '../components/navbars/adminNavbar'; 
-import UserNavbar from '../components/navbars/userNavbar';
+import Navbar from '@/components/navbars/Navbar';
+import AdminNavbar from '@/components/navbars/AdminNavbar';
+import UserNavbar from '@/components/navbars/UserNavbar';
 
 export default function Layout({ children }) {
   const pathname = usePathname();   
@@ -16,7 +15,7 @@ export default function Layout({ children }) {
    
   const isUserPage = pathname.startsWith('/shrinkit/user');
    
-  const isHomePage = pathname === '/' || pathname.startsWith('/shrinkit/login') || pathname.startsWith('/shrinkit/register') || pathname.startsWith('/shrinkit/about');
+  const isHomePage = pathname === '/' || pathname.startsWith('/shrinkit/login') || pathname.startsWith('/shrinkit/register') || pathname.startsWith('/shrinkit/about')|| pathname.startsWith('/shrinkit/plan');
    
 
   return (

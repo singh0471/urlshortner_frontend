@@ -3,13 +3,15 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
+import Cookies from 'js-cookie';
 const AdminNavbar = () => {
   const router = useRouter();
 
   const handleLogout = () => {
     // Remove token from localStorage (or clear other user-related data)
     localStorage.removeItem('token');
+    Cookies.remove('token');
+ 
     
     // Redirect to the home page
     router.push('/');

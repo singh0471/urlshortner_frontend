@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
+import Cookies from 'js-cookie';
 const UserNavbar = () => {
   const router = useRouter();
 
@@ -10,6 +10,7 @@ const UserNavbar = () => {
   const handleLogout = () => {
      
     localStorage.removeItem('token');  
+    Cookies.remove('token');
 
     
     router.push('/');  
@@ -24,6 +25,8 @@ const UserNavbar = () => {
             <li><Link href="/shrinkit/user" className="text-white hover:text-gray-200">Home</Link></li>
             <li><Link href="/shrinkit/user/buy" className="text-white hover:text-gray-200">Buy Plan</Link></li>
             <li><Link href="/shrinkit/user/urls" className="text-white hover:text-gray-200">My URLs</Link></li>
+            <li><Link href="/shrinkit/user/renew" className="text-white hover:text-gray-200">Renew Urls</Link></li>
+            <li><Link href="/shrinkit/user/my-profile" className="text-white hover:text-gray-200">My Profile</Link></li>
           </ul>
         </div>
         <div>

@@ -6,6 +6,8 @@ const Table = ({ headers, tableData }) => {
     return <div className="text-center text-lg text-gray-500 italic mt-4">No data available</div>;
   }
 
+  
+
   const updatedHeaders = headers.map(header => camelCaseToTitleCase(header));
 
   return (

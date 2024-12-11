@@ -6,7 +6,7 @@ import getAllUsersService from '@/lib/getAllUsersService';
 import addToBlacklistService from '@/lib/addToBlacklistService';
 import Pagination from '@/components/Pagination/Pagination';
 import PageSize from '@/components/Pagesize/Pagesize';
-import Filter from '@/components/filter/filter'; // Assuming you have the Filter component
+import Filter from '@/components/filter/filter'; 
 import DownloadCsv from '@/components/DownloadComponents/DownloadComponents';
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -20,20 +20,20 @@ const AllUsers = () => {
   const [modalData, setModalData] = useState([]);
   const [allData,setAllData] = useState(null);
 
-  // States for deactivation modal
+  
   const [deactivationReason, setDeactivationReason] = useState('');
   const [deactivatingUserId, setDeactivatingUserId] = useState(null);
 
-  // Filters state
+  
   const [filters, setFilters] = useState({
     username: '',
     firstName: '',
     lastName: '',
   });
 
-  const [applyFilters, setApplyFilters] = useState(false);  // State to trigger filter apply
+  const [applyFilters, setApplyFilters] = useState(false);   
 
-  // Fetch all users with pagination and filters
+   
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -50,7 +50,7 @@ const AllUsers = () => {
     }
   };
 
-  // Deactivate user and add to blacklist
+  
   const deactivateUser = (user) => {
     setDeactivatingUserId(user.id || user.userId);
     setDeactivationReason('');
@@ -65,8 +65,8 @@ const AllUsers = () => {
     try {
       await addToBlacklistService(deactivatingUserId, deactivationReason);
       toast.success('User successfully deactivated');
-      fetchUsers(); // Re-fetch users after deactivation
-      closeModal(); // Close the modal
+      fetchUsers();  
+      closeModal(); 
     } catch (error) {
       toast.error('Error deactivating user');
     }
@@ -117,10 +117,10 @@ const handleShowPlans = (user) => {
     setModalData([]);
   };
 
-  // Fetch users when page size, page, or filters change
+   
   useEffect(() => {
-    fetchUsers(); // Fetch users initially without any filter
-  }, [currentPage, pageSize]); // Only fetch when page size or page changes
+    fetchUsers();  
+  }, [currentPage, pageSize]);  
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
@@ -128,7 +128,7 @@ const handleShowPlans = (user) => {
 
   const handlePageSizeChange = (newPageSize) => {
     setPageSize(newPageSize);
-    setCurrentPage(1);  // Reset to first page on page size change
+    setCurrentPage(1);  
   };
 
   const handleFilterChange = (attribute, value) => {
@@ -139,8 +139,8 @@ const handleShowPlans = (user) => {
   };
 
   const handleApplyFilters = () => {
-    setApplyFilters(true); // Trigger filter application
-    fetchUsers(); // Apply filters when clicked
+    setApplyFilters(true);  
+    fetchUsers();  
   };
 
   const handleRemoveFilters = () => {
@@ -149,7 +149,7 @@ const handleShowPlans = (user) => {
       firstName: '',
       lastName: ''
     });
-    fetchUsers(); // Fetch all users again with no filters
+    fetchUsers();  
   };
 
   const tableData = () => {

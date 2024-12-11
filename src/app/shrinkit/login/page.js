@@ -16,6 +16,7 @@ export default function Login() {
   const [captchaAnswer, setCaptchaAnswer] = useState('');
   const [captchaQuestion, setCaptchaQuestion] = useState('');
   const [captchaCorrect, setCaptchaCorrect] = useState(false);
+  const [loading, setLoading] = useState(false);  
   const router = useRouter();
 
   useEffect(() => {
@@ -42,34 +43,35 @@ export default function Login() {
     
     setError(null);
     setMessage(null);  
+    setLoading(true);  
 
-     
+    
     if (!formData.username || !formData.password) {
       setError('Both fields are required');
+      setLoading(false);  
       return;
     }
 
-    
+  
     if (parseInt(captchaAnswer) !== captchaCorrect) {
       setError('Incorrect CAPTCHA answer');
+      setLoading(false);  
       return;
     }
 
     try {
       const response = await loginService(formData);
       
-      
       if (response.success) {
         setMessage(response.message);  
         setError(null);   
-
-        
         router.push(response.isAdmin ? '/shrinkit/admin' : '/shrinkit/user');
         console.log('Logged in successfully');
       }
     } catch (err) {
-       
       setError(err.specificMessage || err.message || 'Invalid username or password');
+    } finally {
+      setLoading(false);  
     }
   };
 
@@ -80,7 +82,6 @@ export default function Login() {
           Login to ShrinkIt
         </h2>
 
-         
         {message && (
           <div className="bg-green-500 text-white p-2 rounded mb-4 text-center">
             {message}
@@ -92,8 +93,7 @@ export default function Login() {
             {error}
           </div>
         )}
- 
-        
+
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
@@ -131,7 +131,6 @@ export default function Login() {
             />
           </div>
 
-          
           <div className="mb-6 p-4 border border-blue-300 rounded-lg shadow-lg bg-blue-50">
             <label
               htmlFor="captcha"
@@ -154,9 +153,10 @@ export default function Login() {
           <div className="mb-4">
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading}   
+              className={`w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Login
+              {loading ? 'Logging in...' : 'Login'}   
             </button>
           </div>
         </form>

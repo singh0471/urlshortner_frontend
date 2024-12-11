@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import getAllBlacklistService from '@/lib/getAllBlackListService';
-import getBlacklist from '@/lib/getBlacklist'; // Updated import for getBlacklist service
+import getBlacklist from '@/lib/getBlacklist';  
 import activateUserService from '@/lib/activateUserService';
 
 import Table from '@/components/Table/Table';
@@ -27,37 +27,37 @@ const Blacklist = () => {
     lastName: ''
   });
   const [applyFilters, setApplyFilters] = useState(false);
-  const [blacklistData, setBlacklistData] = useState([]); // State for storing blacklist data
+  const [blacklistData, setBlacklistData] = useState([]);
+  
+  // Loading state
+  const [isLoading, setIsLoading] = useState(false); 
 
   const fetchBlacklistedUsers = async (filters = {}) => {
     console.log("Filters before making API call:", filters);
+    setIsLoading(true); // Start loading
 
     try {
-      // Fetch the blacklist data
-      const blacklistResponse = await getBlacklist(currentPage, pageSize); 
+      const blacklistResponse = await getBlacklist(currentPage, pageSize);
       setBlacklistData(blacklistResponse.data);
 
-      // Fetch users that are blacklisted
       const { data, totalCount } = await getAllBlacklistService(currentPage, pageSize, filters);
 
-      // Fetch all blacklisted users for CSV download
-      const getAlldata = await getAllBlacklistService(1, 1000, {}); 
+      const getAlldata = await getAllBlacklistService(1, 1000, {});
       setAllData(getAlldata.data);
-      console.log("All Blacklisted Data: ", getAlldata.data);  
+      console.log("All Blacklisted Data: ", getAlldata.data);
 
       if (Array.isArray(data)) {
         const usersWithDetails = await Promise.all(
           data.map(async (user) => {
             console.log("Mapping user:", user);
 
-            // Find the blacklist entry corresponding to the user
             const blacklistEntry = blacklistResponse.data.find(item => item.userId === user.id);
             if (blacklistEntry) {
               console.log("Blacklist entry found for user:", blacklistEntry);
               return {
                 ...user,
-                reason: blacklistEntry.reason || 'No reason provided', // Ensure reason is included
-                adminResponse: blacklistEntry.adminResponse || 'No response', // Ensure adminResponse is included
+                reason: blacklistEntry.reason || 'No reason provided',
+                adminResponse: blacklistEntry.adminResponse || 'No response',
               };
             } else {
               console.log("No blacklist entry found for user:", user.id);
@@ -77,17 +77,19 @@ const Blacklist = () => {
     } catch (error) {
       console.error('Error fetching blacklisted users:', error);
       toast.error('Error fetching blacklisted users.');
+    } finally {
+      setIsLoading(false);  
     }
   };
 
   useEffect(() => {
     fetchBlacklistedUsers(filters);
-  }, [currentPage, pageSize]); 
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     if (applyFilters) {
       fetchBlacklistedUsers(filters);
-      setApplyFilters(false); // Reset after applying filters
+      setApplyFilters(false);
     }
   }, [applyFilters, filters]);
 
@@ -121,7 +123,7 @@ const Blacklist = () => {
         if (response.status === 200) {
           toast.success('User activated successfully!');
           setShowModal(false);
-          fetchBlacklistedUsers(filters); // Refresh the list after activation
+          fetchBlacklistedUsers(filters);
         }
       } catch (error) {
         console.error('Error activating user:', error);
@@ -141,7 +143,7 @@ const Blacklist = () => {
 
   const handlePageSizeChange = (newPageSize) => {
     setPageSize(newPageSize);
-    setCurrentPage(1);  
+    setCurrentPage(1);
   };
 
   const handleFilterChange = (attribute, value) => {
@@ -193,7 +195,6 @@ const Blacklist = () => {
           />
         </div>
 
-        {/* Apply/Remove Filters Buttons */}
         <div className="flex mb-6">
           <button 
             onClick={handleApplyFilters}
@@ -209,8 +210,10 @@ const Blacklist = () => {
           </button>
         </div>
 
-        {/* Table */}
-        {blacklistedUsers && blacklistedUsers.length === 0 ? (
+        {/* Loading indicator */}
+        {isLoading ? (
+          <div className="text-center text-lg text-black italic mt-4">Loading...</div>
+        ) : blacklistedUsers && blacklistedUsers.length === 0 ? (
           <div className="text-center text-lg text-black italic mt-4">No blacklisted users</div>
         ) : (
           <>
@@ -240,7 +243,6 @@ const Blacklist = () => {
         )}
       </div>
 
-      {/* Modal for User Activation */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-md w-80">

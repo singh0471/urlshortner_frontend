@@ -3,90 +3,69 @@
 import React, { useState, useEffect } from 'react';
 import getMyUrlsService from '@/lib/getMyUrlService';  
 import Table from '@/components/Table/Table';   
+import Pagination from "@/components/Pagination/Pagination";  
 import PageSize from "@/components/Pagesize/Pagesize";   
-import Pagination from "@/components/Pagination/Pagination";   
-import { selectTableAttribute } from '@/utils/helper/selectTableAttribute';   
-import camelCaseToTitleCase from '@/utils/helper/camelCaseToTitle';  
+import Filter from '@/components/filter/filter';  
 import DownloadCsv from '@/components/DownloadComponents/DownloadComponents';
-import Filter from '@/components/filter/filter';  // Assuming the Filter component is in the correct path
 
 const MyUrlsPage = () => {
   const [urlsData, setUrlsData] = useState([]);  
-  const [headers, setHeaders] = useState([]);   
-  const [page, setPage] = useState(1);   
-  const [pageSize, setPageSize] = useState(4);   
-  const [totalPages, setTotalPages] = useState(0);   
-  const [allData, setAllData] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);   
+  const [pageSize, setPageSize] = useState(4);  
+  const [totalCount, setTotalCount] = useState(0);  
+  const [allData, setAllData] = useState(null);  
+
   
-  // Filters state
   const [filters, setFilters] = useState({
     shortUrl: '',
     actualUrl: '',
-    clicksLeftRange: '',
-    totalClicksRange: '',
-    isCustom: null
+    fromClicksLeft: null,
+    toClicksLeft: null,
+    fromTotalClicks: null,
+    toTotalClicks: null,
+    isCustom: null,  
   });
 
-  const [applyFilters, setApplyFilters] = useState(false);  // For applying filters on button click
+  const [applyFilters, setApplyFilters] = useState(false);  
+  const [loading, setLoading] = useState(false);   
 
-  const mapUrlsData = (data) => {
-    const requiredColumns = [
-      "actualUrl",
-      "shortUrl",
-      "clicksLeft",
-      "totalClicks"
-    ];
-
-    const selectedData = selectTableAttribute(data, requiredColumns);
-
-    const headers = [
-      "Sr. No", 
-      ...requiredColumns.map((key) => camelCaseToTitleCase(key))
-    ];
-
-    setHeaders(headers);
-
-    return selectedData.map((item, index) => ({
-      srNo: (page - 1) * pageSize + index + 1,   
-      actualUrl: item.actualUrl,
-      shortUrl: item.shortUrl,
-      clicksLeft: item.clicksLeft,
-      totalClicks: item.totalClicks || 0   
-    }));
-  };
-
-  const fetchUrlsData = async (filters = {}) => {
+  const fetchUrls = async (filters = {}) => {
+    setLoading(true);
     try {
-      const response = await getMyUrlsService(page, pageSize, filters);
-      const getAllData = await getMyUrlsService(); // Fetch all data for CSV
+      const { data, totalCount } = await getMyUrlsService(currentPage, pageSize, filters); 
+      const getAllData = await getMyUrlsService(1, 1000, {}); 
       setAllData(getAllData.data);
-
-      if (response?.data && Array.isArray(response.data)) {
-        const urls = response.data;
-        const mappedUrlsData = mapUrlsData(urls);
-        setUrlsData(mappedUrlsData);   
-      } else {
-        setUrlsData([]);  
-      }
-
-      if (response?.totalCount) {
-        setTotalPages(Math.ceil(Number(response.totalCount) / pageSize));
-      } else {
-        setTotalPages(0);  
-      }
+      setUrlsData(data);
+      setTotalCount(totalCount);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error('Error fetching URLs:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePageChange = (newPage) => setPage(newPage);
+  useEffect(() => {
+    fetchUrls(filters);
+  }, [currentPage, pageSize]);
 
-  const handlePageSizeChange = (newSize) => {
-    setPageSize(newSize);
-    setPage(1);   
-  };
+  useEffect(() => {
+    if (applyFilters) {
+      fetchUrls(filters);
+      setApplyFilters(false);
+    }
+  }, [applyFilters, filters]);
 
-  // Handle filter input changes
+  const tableHeaders = ['Sr. No.', 'Short URL', 'Actual URL', 'Is Custom', 'Total Clicks', 'Clicks Left'];
+
+  const tableData = urlsData.map((url, index) => ({
+    srNo: (currentPage - 1) * pageSize + index + 1,
+    shortUrl: url.shortUrl,
+    actualUrl: url.actualUrl,
+    isCustom: url.isCustom ? 'True' : 'False',
+    totalClicks: url.totalClicks,
+    clicksLeft: url.clicksLeft,
+  }));
+
   const handleFilterChange = (attribute, value) => {
     setFilters(prev => ({
       ...prev,
@@ -94,33 +73,34 @@ const MyUrlsPage = () => {
     }));
   };
 
-  // Apply filters
   const handleApplyFilters = () => {
     setApplyFilters(true);  
   };
 
-  // Remove filters
   const handleRemoveFilters = () => {
     setFilters({
       shortUrl: '',
       actualUrl: '',
-      clicksLeftRange: '',
-      totalClicksRange: '',
-      isCustom: null
+      fromClicksLeft: null,
+      toClicksLeft: null,
+      fromTotalClicks: null,
+      toTotalClicks: null,
+      isCustom: null,
     });
-    setApplyFilters(false);  // Reset the applyFilters state
-    fetchUrlsData();  // Fetch data without any filters
+    setApplyFilters(false);
+    fetchUrls();
   };
 
-  useEffect(() => {
-    if (applyFilters) {
-      fetchUrlsData(filters); // Fetch data when filters are applied
-      setApplyFilters(false); // Reset the applyFilters flag
-    } else {
-      fetchUrlsData();  // Regular data fetch without filters
-    }
-  }, [page, pageSize, applyFilters, filters]);  // Fetch when page, pageSize, or filters change
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
 
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
+  };
+
+ 
   const clicksLeftOptions = [
     { label: '1-10', value: '1-10' },
     { label: '10-100', value: '10-100' },
@@ -135,20 +115,50 @@ const MyUrlsPage = () => {
     { label: '>1000', value: '>1000' }
   ];
 
-  return (
-    <div className="bg-gradient-to-r from-blue-500 to-teal-500 min-h-screen py-12">
-      <div className="container mx-auto p-6 bg-white rounded-lg shadow-lg">
-        
-        {/* Title */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-teal-600 mb-6">
-            My URLs
-          </h1>
-        </div>
+  const handleRangeFilterChange = (type, range) => {
+    let from = null, to = null;
 
-        {/* Filter Row */}
+    switch(range) {
+      case '1-10':
+        from = 1; to = 10;
+        break;
+      case '10-100':
+        from = 10; to = 100;
+        break;
+      case '100-1000':
+        from = 100; to = 1000;
+        break;
+      case '>1000':
+        from = 1000; to = null;
+        break;
+      default:
+        break;
+    }
+
+    if (type === 'clicksLeft') {
+      setFilters(prev => ({
+        ...prev,
+        fromClicksLeft: from,
+        toClicksLeft: to
+      }));
+    } else if (type === 'totalClicks') {
+      setFilters(prev => ({
+        ...prev,
+        fromTotalClicks: from,
+        toTotalClicks: to
+      }));
+    }
+  };
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  return (
+    <div className="admin-urls-container min-h-screen bg-gradient-to-r from-blue-500 to-teal-500 text-white flex flex-col items-center p-6">
+      <h1 className="text-3xl font-bold text-center mb-6 text-white">My URLs</h1>
+
+      <div className="w-full max-w-6xl bg-white p-6 rounded-lg shadow-lg mb-8">
+        
         <div className="flex flex-wrap justify-start gap-4 items-center mb-6">
-          {/* Removed username filter */}
           <Filter 
             label="Short URL" 
             attribute="shortUrl" 
@@ -161,14 +171,14 @@ const MyUrlsPage = () => {
             value={filters.actualUrl} 
             onFilterChange={handleFilterChange} 
           />
-
-          {/* Clicks Left Range Filter */}
+          
+          
           <div className="flex flex-col items-start gap-1 text-xs">
             <label htmlFor="clicksLeft" className="font-medium text-gray-600 text-[10px]">Clicks Left:</label>
             <select
               id="clicksLeft"
-              value={filters.clicksLeftRange}
-              onChange={(e) => handleFilterChange('clicksLeftRange', e.target.value)}
+              value={filters.fromClicksLeft && filters.toClicksLeft ? `${filters.fromClicksLeft}-${filters.toClicksLeft}` : ''}
+              onChange={(e) => handleRangeFilterChange('clicksLeft', e.target.value)}
               className="w-32 p-1 text-[10px] text-black border border-gray-300 rounded bg-gray-50 focus:border-teal-500 focus:outline-none"
             >
               <option value="">Select Range</option>
@@ -180,13 +190,13 @@ const MyUrlsPage = () => {
             </select>
           </div>
 
-          {/* Total Clicks Range Filter */}
+          
           <div className="flex flex-col items-start gap-1 text-xs">
             <label htmlFor="totalClicks" className="font-medium text-gray-600 text-[10px]">Total Clicks:</label>
             <select
               id="totalClicks"
-              value={filters.totalClicksRange}
-              onChange={(e) => handleFilterChange('totalClicksRange', e.target.value)}
+              value={filters.fromTotalClicks && filters.toTotalClicks ? `${filters.fromTotalClicks}-${filters.toTotalClicks}` : ''}
+              onChange={(e) => handleRangeFilterChange('totalClicks', e.target.value)}
               className="w-32 p-1 text-[10px] text-black border border-gray-300 rounded bg-gray-50 focus:border-teal-500 focus:outline-none"
             >
               <option value="">Select Range</option>
@@ -198,7 +208,7 @@ const MyUrlsPage = () => {
             </select>
           </div>
 
-          {/* Checkbox for isCustom */}
+         
           <div className="flex items-center gap-2">
             <input 
               type="checkbox" 
@@ -211,7 +221,7 @@ const MyUrlsPage = () => {
           </div>
         </div>
 
-        {/* Apply/Remove Filters Buttons */}
+         
         <div className="flex mb-6">
           <button 
             onClick={handleApplyFilters}
@@ -227,30 +237,39 @@ const MyUrlsPage = () => {
           </button>
         </div>
 
-        {/* Download CSV Button */}
-        <div className="flex items-center gap-4 ml-auto">
-          <DownloadCsv
-            data={allData}
-            headers={['actualUrl', 'shortUrl', 'clicksLeft', 'totalClicks']}
-            fileName="my_urls.csv"
-          />
-        </div>
-
-        {/* Table */}
-        <Table 
-          headers={headers} 
-          tableData={urlsData}  
-        />
-
-        {/* Pagination and Page Size */}
-        {urlsData.length > 0 && (
+        
+        {loading ? (
+          <div className="text-center text-lg text-black italic mt-4">Loading...</div>
+        ) : (
           <>
-            <PageSize pageSize={pageSize} onPageSizeChange={handlePageSizeChange} />
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages} 
-              onPageChange={handlePageChange}
-            />
+            {urlsData && urlsData.length === 0 ? (
+              <div className="text-center text-lg text-black italic mt-4">No URLs found</div>
+            ) : (
+              <>
+                <div className="flex items-center gap-4 ml-auto">
+                  <DownloadCsv
+                    data={allData}   
+                    headers={['shortUrl', 'actualUrl','isCustom','totalClicks','clicksLeft']}  
+                    fileName="my_urls.csv"
+                  />
+                </div>
+                <Table headers={tableHeaders} tableData={tableData} />
+
+                 
+                <div className="flex justify-between items-center mt-6">
+                  <div className="flex justify-start w-1/2">
+                    <PageSize pageSize={pageSize} onPageSizeChange={handlePageSizeChange} />
+                  </div>
+                  <div className="flex justify-center w-1/2">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={Math.ceil(totalCount / pageSize)}  
+                      onPageChange={handlePageChange}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>

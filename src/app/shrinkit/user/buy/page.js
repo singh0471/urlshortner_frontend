@@ -6,6 +6,7 @@ import getAllUrlPlanService from '@/lib/getAllUrlPlansService';
 import buyPlanService from '@/lib/buyPlansService';  
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
 export default function BuyUrl() {
   const [currentSection, setCurrentSection] = useState('url');
   const [urlPlans, setUrlPlans] = useState([]);
@@ -19,6 +20,7 @@ export default function BuyUrl() {
   const [showModal, setShowModal] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState('');
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);  
 
   const [cardDetails, setCardDetails] = useState({
     cardNumber: '',
@@ -91,6 +93,9 @@ export default function BuyUrl() {
           <strong>Clicks Per URL:</strong> {plan.clicksPerUrl}
         </div>
         <div className="mb-2">
+          <strong>Custom Url :</strong> {plan.customUrlLimit}
+        </div>
+        <div className="mb-2">
           <strong>Amount:</strong> ${plan.amount.toFixed(2)}
         </div>
 
@@ -143,28 +148,24 @@ export default function BuyUrl() {
   const validatePaymentDetails = () => {
     const { cardNumber, expiryDate, cvv } = cardDetails;
 
-     
     const cardNumberPattern = /^\d{16}$/;
     if (!cardNumberPattern.test(cardNumber)) {
       setPaymentMessage('Invalid card number. Please enter a 16-digit number.');
       return false;
     }
 
-     
     const expiryPattern = /^(0[1-9]|1[0-2])\/(2[3-9]|[3-9][0-9])$/;
     if (!expiryPattern.test(expiryDate)) {
       setPaymentMessage('Invalid expiry date. Please enter in MM/YY format.');
       return false;
     }
 
-     
     const cvvPattern = /^\d{3}$/;
     if (!cvvPattern.test(cvv)) {
       setPaymentMessage('Invalid CVV. Please enter a 3-digit CVV.');
       return false;
     }
 
-     
     const [month, year] = expiryDate.split('/');
     const expiry = new Date(`20${year}`, month - 1);
     const currentDate = new Date();
@@ -179,8 +180,8 @@ export default function BuyUrl() {
 
   const handlePaymentSubmit = async () => {
     if (validatePaymentDetails()) {
+      setIsPaymentLoading(true); 
       try {
-         
         const transactionData = {
           plans: [...selectedUrlPlans, ...selectedClickPlans],
           totalAmount: totalAmount,
@@ -188,10 +189,8 @@ export default function BuyUrl() {
 
         const response = await buyPlanService(transactionData);
 
-        
-        if (response===201) {
+        if (response === 201) {
           setPaymentMessage('Payment Successful!');
-          /// changes made
           setTimeout(() => {
             router.push('/shrinkit/user');   
           }, 2000); 
@@ -201,6 +200,8 @@ export default function BuyUrl() {
       } catch (error) {
         setPaymentMessage('An error occurred. Please try again.');
         console.error('Payment service error:', error);
+      } finally {
+        setIsPaymentLoading(false);  
       }
     }
   };
@@ -227,7 +228,7 @@ export default function BuyUrl() {
 
         <div className="flex justify-center mb-6">
           {loading ? (
-            <div>Loading...</div>
+            <div>Loading plans...</div>
           ) : (
             (currentSection === 'url' ? urlPlans : clickPlans).map((plan) =>
               renderPlanCard(plan, currentSection)
@@ -339,7 +340,7 @@ export default function BuyUrl() {
                     value={cardDetails.cvv}
                     onChange={handleCardInputChange}
                     maxLength={3}
-                     className="w-full p-2 border rounded-lg text-black"
+                    className="w-full p-2 border rounded-lg text-black"
                     placeholder="CVV"
                   />
                 </div>
@@ -354,7 +355,7 @@ export default function BuyUrl() {
                   onClick={handlePaymentSubmit}
                   className="px-6 py-2 bg-teal-600 text-white rounded-lg shadow-md hover:bg-teal-700 transition duration-300"
                 >
-                  Pay ${totalAmount.toFixed(2)}
+                  {isPaymentLoading ? 'Processing...' : `Pay $${totalAmount.toFixed(2)}`}
                 </button>
               </div>
 
@@ -370,7 +371,3 @@ export default function BuyUrl() {
     </div>
   );
 }
-
-
-
-

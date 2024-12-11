@@ -6,7 +6,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const CreatePlan = () => {
-  const [type, setType] = useState('');  
+  const [type, setType] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -18,10 +18,11 @@ const CreatePlan = () => {
     totalClicksPerUrl: '',
   });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);  
 
   const handleTypeChange = (e) => {
     setType(e.target.value);
-    setFormData({ ...formData, amount: '' }); // Reset amount when plan type changes
+    setFormData({ ...formData, amount: '' }); 
     setError('');
   };
 
@@ -78,6 +79,8 @@ const CreatePlan = () => {
 
     const planData = { ...formData, type };
 
+    setIsLoading(true); // Start loading
+
     try {
       const response = await createPlansService(planData);
       toast.success('Plan created successfully!');
@@ -100,6 +103,8 @@ const CreatePlan = () => {
         error?.response?.data?.specificMessage || 'Plan with this name already exists';
       toast.error(errorMessage);
       console.error('Error creating plan:', error);
+    } finally {
+      setIsLoading(false); // End loading
     }
   };
 
@@ -261,8 +266,16 @@ const CreatePlan = () => {
           )}
 
           <div className="text-center">
-            <button type="submit" className="px-6 py-3 mt-6 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700">
-              Create Plan
+            <button
+              type="submit"
+              className={`px-6 py-3 mt-6 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span>Loading...</span>  
+              ) : (
+                'Create Plan'
+              )}
             </button>
           </div>
         </form>

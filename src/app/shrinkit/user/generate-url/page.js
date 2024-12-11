@@ -78,7 +78,7 @@ const GenerateUrlComponent = () => {
       }
 
       const response = await createShortUrlService(requestData);
-      setShortUrl(`localhost:4000/${response.data.shortUrl}`);
+      setShortUrl(`localhost:3000/${response.data.shortUrl}`);
       showToast('Short URL created successfully!', 'success');
     } catch (error) {
       if (error.response?.data?.specificMessage) {

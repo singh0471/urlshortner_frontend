@@ -11,11 +11,12 @@ export default function Register() {
     firstName: '',
     lastName: '',
     email: '',
-    password: '',  // password will be skipped for validation
+    password: '',  
   });
   const router = useRouter();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -25,32 +26,27 @@ export default function Register() {
     });
   };
 
-  // Function to validate the username, password, and names
   const validateForm = () => {
     const { username, firstName, lastName, password } = formData;
     
-    // Username: Can't start with a number
     const usernameRegex = /^[A-Za-z][A-Za-z0-9]*$/;
     if (!usernameRegex.test(username)) {
       setError("Username cannot start with a number.");
       return false;
     }
 
-    // First Name and Last Name: Only alphabetic characters
     const nameRegex = /^[A-Za-z]+$/;
     if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
       setError("First name and last name can only contain alphabetic characters.");
       return false;
     }
 
-    // Password: At least 8 characters, 1 uppercase, 1 special character, and 1 number
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/;
     if (!passwordRegex.test(password)) {
       setError("Password must be at least 8 characters long, include at least one uppercase letter, one special character, and one number.");
       return false;
     }
 
-    // Clear error if all validations pass
     setError('');
     return true;
   };
@@ -58,30 +54,29 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form before submission
     if (!validateForm()) return;
 
-    // Convert fields (except password) to lowercase before logging
     const formDataLowercase = {
       username: formData.username.toLowerCase(),
       firstName: formData.firstName.toLowerCase(),
       lastName: formData.lastName.toLowerCase(),
       email: formData.email.toLowerCase(),
-      password: formData.password,  // No change to password
+      password: formData.password,   
     };
+
+    setLoading(true); 
 
     try {
       const response = await registerService(formDataLowercase);
-      setSuccess(true);  // Set success state to true on successful registration
-      setError(''); // Clear any previous errors
+      setSuccess(true);
+      setError('');
       console.log('Registration response:', response);
-
-      // Redirect to login page after successful registration (optional)
-      
     } catch (err) {
       setSuccess(false);
-      setError(err.message || 'Registration failed. Please try again later.');  // Display the specific error message
+      setError(err.message || 'Registration failed. Please try again later.');
       console.error('Registration error:', err);
+    } finally {
+      setLoading(false); 
     }
   };
 
@@ -92,7 +87,6 @@ export default function Register() {
           Create an Account
         </h2>
 
-        {/* Display error or success message */}
         {error && (
           <div className="bg-red-500 text-white p-2 rounded mb-4 text-center">
             {error}
@@ -104,7 +98,6 @@ export default function Register() {
           </div>
         )}
 
-        {/* Registration Form */}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
@@ -196,18 +189,17 @@ export default function Register() {
             />
           </div>
 
-          {/* Submit Button */}
           <div className="mb-4">
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading}   
+              className={`w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Register
+              {loading ? 'Registering...' : 'Register'} 
             </button>
           </div>
         </form>
 
-        {/* Login Link */}
         <div className="text-center mt-4">
           <p className="text-sm text-gray-700">
             Already have an account?{' '}
@@ -223,4 +215,3 @@ export default function Register() {
     </div>
   );
 }
-

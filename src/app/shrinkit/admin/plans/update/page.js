@@ -20,6 +20,8 @@ const UpdatePlan = () => {
     numberOfUrlsRenewed: '',
     totalClicksPerUrl: '',
   });
+  const [originalData, setOriginalData] = useState({});  
+  const [isLoading, setIsLoading] = useState(false);  
 
   useEffect(() => {
     if (type === 'url') {
@@ -60,16 +62,16 @@ const UpdatePlan = () => {
       numberOfUrlsRenewed: '',
       totalClicksPerUrl: '',
     });
+    setOriginalData({});
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // If the field is `customUrlLimit` and the value exceeds `urlLimit`, show an error toast
     if (name === 'customUrlLimit') {
       if (parseInt(value) > parseInt(formData.urlLimit)) {
         toast.error('Custom URL Limit cannot exceed URL Limit.');
-        return; // Do not update the state if validation fails
+        return; 
       }
     }
 
@@ -78,16 +80,29 @@ const UpdatePlan = () => {
 
   const handleUpdatePlan = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
+    // Prepare updatedData by comparing formData and originalData
+    const updatedData = Object.keys(formData).reduce((acc, key) => {
+      // Only add key-value pairs where the value has changed
+      if (formData[key] !== originalData[key]) {
+        acc.push({ parameter: key, value: formData[key] });
+      }
+      return acc;
+    }, []);
+
+    if (updatedData.length === 0) {
+      toast.info('No changes detected.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const updatedData = Object.keys(formData).map((key) => ({
-        parameter: key,
-        value: formData[key],
-      }));
       const response = await updatePlanService(selectedPlan, updatedData);
       toast.success('Plan updated successfully!');
       console.log(response);
 
-      // Reset form data and selected plan after successful update
+ 
       setFormData({
         name: '',
         description: '',
@@ -101,16 +116,29 @@ const UpdatePlan = () => {
       setSelectedPlan('');
       setType('');
     } catch (error) {
-      toast.error('plan name already exists.');
+      toast.error('Error occurred while updating plan.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Fill form data when a plan is selected
   const handlePlanSelect = (planId) => {
     const selected = plans.find((plan) => plan.id === planId);
     if (selected) {
       setSelectedPlan(selected.id);
       setFormData({
+        name: selected.name || '',
+        description: selected.description || '',
+        amount: selected.amount || '',
+        urlLimit: selected.urlLimit || '',
+        customUrlLimit: selected.customUrlLimit || '',
+        clicksPerUrl: selected.clicksPerUrl || '',
+        numberOfUrlsRenewed: selected.numberOfUrlsRenewed || '',
+        totalClicksPerUrl: selected.totalClicksPerUrl || '',
+      });
+
+ 
+      setOriginalData({
         name: selected.name || '',
         description: selected.description || '',
         amount: selected.amount || '',
@@ -130,7 +158,6 @@ const UpdatePlan = () => {
         <h2 className="text-4xl font-semibold text-center text-teal-600 mb-8">Update Plan</h2>
 
         <form className="space-y-6" onSubmit={handleUpdatePlan}>
-          {/* Plan Type Selection */}
           <div>
             <label className="block text-lg font-semibold text-black">Select Plan Type:</label>
             <select
@@ -145,7 +172,6 @@ const UpdatePlan = () => {
             </select>
           </div>
 
-          {/* Only show the plan dropdown if a plan type is selected */}
           {type && (
             <div>
               <label className="block text-lg font-semibold text-black">Select Plan:</label>
@@ -165,10 +191,8 @@ const UpdatePlan = () => {
             </div>
           )}
 
-          {/* Only show the fields below if a plan is selected */}
           {selectedPlan && (
             <>
-              {/* Name */}
               <div>
                 <label className="block text-lg font-semibold text-black">Name:</label>
                 <input
@@ -182,7 +206,6 @@ const UpdatePlan = () => {
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-lg font-semibold text-black">Description:</label>
                 <textarea
@@ -195,7 +218,6 @@ const UpdatePlan = () => {
                 />
               </div>
 
-              {/* Conditional Fields */}
               {type === 'url' && (
                 <>
                   <div className="grid grid-cols-2 gap-6">
@@ -270,7 +292,6 @@ const UpdatePlan = () => {
                 </>
               )}
 
-              {/* Amount */}
               <div>
                 <label className="block text-lg font-semibold text-black">Amount:</label>
                 <input
@@ -285,13 +306,13 @@ const UpdatePlan = () => {
                 />
               </div>
 
-              {/* Submit Button */}
               <div className="text-center">
                 <button
                   type="submit"
-                  className="w-full p-3 mt-4 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
+                  className={`w-full p-3 mt-4 bg-teal-500 text-white rounded-lg hover:bg-teal-600 ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+                  disabled={isLoading}  
                 >
-                  Update Plan
+                  {isLoading ? 'Loading...' : 'Update Plan'}
                 </button>
               </div>
             </>

@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const UpdateUser = () => {
   const [updates, setUpdates] = useState([{ parameter: '', value: '' }]);
   const [isModalOpen, setIsModalOpen] = useState(false);  
+  const [isLoading, setIsLoading] = useState(false);   
   const allParameters = ['username', 'firstName', 'lastName', 'email', 'password'];
 
   const addUpdateOption = () => {
@@ -28,11 +29,9 @@ const UpdateUser = () => {
     setUpdates(newUpdates);
   };
 
- 
   const validateField = (parameter, value) => {
     const nameRegex = /^[a-zA-Z\s]+$/;
 
- 
     if (parameter === 'username') {
       const usernameRegex = /^[A-Za-z][A-Za-z0-9]*$/;  
       if (!usernameRegex.test(value)) {
@@ -41,13 +40,11 @@ const UpdateUser = () => {
       }
     }
 
-    
     if ((parameter === 'firstName' || parameter === 'lastName') && !nameRegex.test(value)) {
       toast.error(`${camelCaseToTitleCase(parameter)} must contain only letters and spaces.`);
       return false;
     }
 
- 
     if (parameter === 'email') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(value)) {
@@ -56,7 +53,6 @@ const UpdateUser = () => {
       }
     }
 
- 
     if (parameter === 'password') {
       const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,}$/;
       if (!passwordRegex.test(value)) {
@@ -70,29 +66,73 @@ const UpdateUser = () => {
 
   const handleUpdateUser = async (event) => {
     event.preventDefault();
-
+  
+    setIsLoading(true);  
+  
     const updateBody = updates.filter((update) => update.parameter && update.value);
-
- 
+  
+    
     for (const update of updateBody) {
       const { parameter, value } = update;
       if (!validateField(parameter, value)) {
+        setIsLoading(false);  
         return;
       }
     }
-
+  
     if (updateBody.length === 0) {
       toast.error('Please fill in at least one parameter to update.');
+      setIsLoading(false);  
       return;
     }
-
+  
     try {
-      await updateUserService(updateBody);  
+      await updateUserService(updateBody);
       toast.success('User updated successfully!');
     } catch (error) {
-      toast.error('Error updating user. Please try again.');
+       
+      const specificMessage = error?.specificMessage || 'Error updating user. Please try again.';
+      toast.error(specificMessage);   
+    } finally {
+      setIsLoading(false);  
     }
-  };
+};
+
+  
+
+  // const handleUpdateUser = async (event) => {
+  //   event.preventDefault();
+
+  //   setIsLoading(true); // Set loading to true when the update starts
+
+  //   const updateBody = updates.filter((update) => update.parameter && update.value);
+
+  //   // Validate the fields before submitting the update
+  //   for (const update of updateBody) {
+  //     const { parameter, value } = update;
+  //     if (!validateField(parameter, value)) {
+  //       setIsLoading(false); // Reset loading if validation fails
+  //       return;
+  //     }
+  //   }
+
+  //   if (updateBody.length === 0) {
+  //     toast.error('Please fill in at least one parameter to update.');
+  //     setIsLoading(false); // Reset loading if no parameters to update
+  //     return;
+  //   }
+
+  //   try {
+  //     await updateUserService(updateBody);
+  //     toast.success('User updated successfully!');
+  //   } catch (error) {
+  //     // Handle the error and extract the specific message if available
+  //     const errorMessage = error?.response?.data?.specificMessage || 'Error updating user. Please try again.';
+  //     toast.error(errorMessage); // Show the specific error message
+  //   } finally {
+  //     setIsLoading(false); // Reset loading after the update process
+  //   }
+  // };
 
   const getAvailableParameters = (index) => {
     const selectedParameters = updates.map((update) => update.parameter);
@@ -184,8 +224,9 @@ const UpdateUser = () => {
             type="submit" 
             className="w-full px-6 py-3 bg-green-600 text-white rounded-md"
             onClick={handleUpdateUser}
+            disabled={isLoading} // Disable the button while loading
           >
-            Update User
+            {isLoading ? 'Updating...' : 'Update User'}
           </button>
         </div>
 
@@ -202,7 +243,7 @@ const UpdateUser = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-md w-96">
-          <h3 className="text-lg font-semibold text-center mb-4 text-black">Are you sure you want to delete your account?</h3>
+            <h3 className="text-lg font-semibold text-center mb-4 text-black">Are you sure you want to delete your account?</h3>
 
             <div className="flex justify-around">
               <button
@@ -226,5 +267,3 @@ const UpdateUser = () => {
 };
 
 export default UpdateUser;
-
-

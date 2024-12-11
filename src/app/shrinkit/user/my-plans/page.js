@@ -7,6 +7,7 @@ import Table from "@/components/Table/Table";
 import PageSize from "@/components/Pagesize/Pagesize";
 import Pagination from "@/components/Pagination/Pagination";
 import { selectTableAttribute } from '@/utils/helper/selectTableAttribute';
+import DownloadCsv from '@/components/DownloadComponents/DownloadComponents';
 import camelCaseToTitleCase from '@/utils/helper/camelCaseToTitle';
 import Filter from '@/components/filter/filter';
 
@@ -18,8 +19,10 @@ const MyPlansPage = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(4);
   const [totalPages, setTotalPages] = useState(0);
-  const [errorMessage, setErrorMessage] = useState("");  // Error message state
-  const [filterText, setFilterText] = useState('');  // Filter state
+  const [errorMessage, setErrorMessage] = useState("");  
+  const [filterText, setFilterText] = useState('');   
+  const [urlData,setUrlData] = useState('');
+  const [clicksData,setClicksData] = useState('');
 
   const mapUrlPlans = (data) => {
     const requiredColumns = [
@@ -39,7 +42,7 @@ const MyPlansPage = () => {
     setHeaders(headers);
     
     return selectedData.map((item, index) => ({
-      srNo: (page - 1) * pageSize + index + 1,  // Adjusted to maintain continuity
+      srNo: (page - 1) * pageSize + index + 1,   
       ...item
     }));
   };
@@ -60,7 +63,7 @@ const MyPlansPage = () => {
     setHeaders(headers);
 
     return selectedData.map((item, index) => ({
-      srNo: (page - 1) * pageSize + index + 1,  // Adjusted to maintain continuity
+      srNo: (page - 1) * pageSize + index + 1, 
       ...item
     }));
   };
@@ -71,23 +74,27 @@ const MyPlansPage = () => {
         const filters = { filterText };
 
         if (activeSection === 'url') {
-            response = await getMyUrlPlansService(page, pageSize, filters);  // Pass filters for URL plans
+            response = await getMyUrlPlansService(page, pageSize, filters);
+            const dataUrl = await getMyUrlPlansService(1,1000,{});
+            setUrlData(dataUrl.data);
             console.log(response);
             
             if (response?.data && Array.isArray(response.data)) {
                 setPlansData(mapUrlPlans(response.data));   
-                setErrorMessage("");  // Clear any previous error message
+                setErrorMessage("");   
             } else {
                 setPlansData([]);  
                 setErrorMessage("No URL plans exist.");
             }
         } else {
-            response = await getMyClicksPlansService(page, pageSize, filters);  // Pass filters for Clicks plans
+            response = await getMyClicksPlansService(page, pageSize, filters);   
+            const dataClicks = await getMyClicksPlansService(1,1000,{});
+            setClicksData(dataClicks.data);
             console.log(response);
 
             if (response?.data && Array.isArray(response.data)) {
                 setPlansData(mapClicksPlans(response.data));   
-                setErrorMessage("");  // Clear any previous error message
+                setErrorMessage("");   
             } else {
                 setPlansData([]);  
                 setErrorMessage("No Clicks plans exist.");
@@ -119,14 +126,14 @@ const MyPlansPage = () => {
 
   const handleFilterChange = (attribute, value) => {
     if (attribute === 'planName') {
-      setFilterText(value);  // Update the filterText state on filter change
-      setPage(1);  // Reset page to 1 when the filter changes
+      setFilterText(value);  
+      setPage(1);  
     }
   };
 
   useEffect(() => {
     fetchPlans();
-  }, [page, pageSize, activeSection, filterText]);  // Include filterText in dependencies
+  }, [page, pageSize, activeSection, filterText]);  
 
   return (
     <div className="bg-gradient-to-r from-blue-500 to-teal-500 min-h-screen py-12">
@@ -171,6 +178,23 @@ const MyPlansPage = () => {
             <p>{errorMessage}</p>
           </div>
         )}
+
+<div className="flex items-center gap-4 ml-auto">
+  {activeSection === 'url' ? (
+    <DownloadCsv
+      data={urlData}
+      headers={['planName', 'totalUrl', 'totalCustomUrl', 'totalClicksPerUrl', 'urlLeft', 'customUrlLeft','amount']}
+      fileName="my_url_plans.csv"
+    />
+  ) : (
+    <DownloadCsv
+      data={clicksData}
+      headers={['planName', 'urlRenewLimit', 'urlRenewLeft', 'clicksPerUrlRenew', 'amount']}
+      fileName="my_clicks_plan.csv"
+    />
+  )}
+</div>
+
 
         {/* Table for displaying plans */}
         {plansData.length > 0 ? (

@@ -32,8 +32,8 @@ async function getMyClicksPlansService(page, pageSize,filters={}) {
       totalCount: response.headers['x-total-count']  
     };  
   } catch (error) {
-    // console.error(error);
-    // throw new Error('Error fetching plans');
+    console.error(error);
+    //throw new Error('Error fetching plans');
   }
 }
 

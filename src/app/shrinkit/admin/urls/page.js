@@ -7,14 +7,13 @@ import Pagination from '@/components/Pagination/Pagination';
 import PageSize from '@/components/Pagesize/Pagesize';   
 import Filter from '@/components/filter/filter';
 import DownloadCsv from '@/components/DownloadComponents/DownloadComponents';
+
 const GetAllUrls = () => {
   const [urls, setUrls] = useState([]);  
   const [currentPage, setCurrentPage] = useState(1);   
   const [pageSize, setPageSize] = useState(4);  
   const [totalCount, setTotalCount] = useState(0);  
   const [allData,setAllData] = useState(null);
- 
-
   const [filters, setFilters] = useState({
     username: '',
     shortUrl: '',
@@ -25,41 +24,40 @@ const GetAllUrls = () => {
     toTotalClicks: null,
     isCustom: null,  
   });
-
   const [applyFilters, setApplyFilters] = useState(false);
+  
+  const [loading, setLoading] = useState(false);   
 
-   
   const fetchUrls = async (filters = {}) => {
+    setLoading(true);  
     try {
       const { data, totalCount } = await getAllUrlsService(currentPage, pageSize, filters);
       const getAllData = await getAllUrlsService(1,1000,{});
       setAllData(getAllData.data);
       setUrls(data);
       setTotalCount(totalCount);
-      
     } catch (error) {
       console.error('Error fetching URLs:', error);
+    } finally {
+      setLoading(false);   
     }
   };
 
-  // Effect hook to fetch URLs on page size or page number change
   useEffect(() => {
     fetchUrls(filters); 
-  }, [currentPage, pageSize]); // Only run fetch on page size and page change, not on filter change directly.
+  }, [currentPage, pageSize]);  
 
-  // Effect hook to fetch URLs when filters are applied
   useEffect(() => {
     if (applyFilters) {
       fetchUrls(filters); 
-      setApplyFilters(false); // Reset the applyFilters state to avoid multiple requests
+      setApplyFilters(false); 
     }
-  }, [applyFilters, filters]); // Fetch URLs when filters are applied
+  }, [applyFilters, filters]);
 
   const tableHeaders = ['Sr. No.', 'Username', 'Short URL', 'Actual URL', 'Is Custom', 'Total Clicks', 'Clicks Left'];
 
-  // Format data for the table
   const tableData = urls.map((url, index) => ({
-    srNo: (currentPage - 1) * pageSize + index + 1, // Calculating serial number
+    srNo: (currentPage - 1) * pageSize + index + 1, 
     username: url.username,
     shortUrl: url.shortUrl,
     actualUrl: url.actualUrl,
@@ -68,7 +66,6 @@ const GetAllUrls = () => {
     clicksLeft: url.clicksLeft,
   }));
 
-  // Handle filter input changes
   const handleFilterChange = (attribute, value) => {
     setFilters(prev => ({
       ...prev,
@@ -76,12 +73,10 @@ const GetAllUrls = () => {
     }));
   };
 
-  // Apply filters (only fetch data after clicking the button)
   const handleApplyFilters = () => {
     setApplyFilters(true);  
   };
 
-  // Remove filters and reset state
   const handleRemoveFilters = () => {
     setFilters({
       username: '',
@@ -91,18 +86,16 @@ const GetAllUrls = () => {
       toClicksLeft: null,
       fromTotalClicks: null,
       toTotalClicks: null,
-      isCustom: null, // Reset isCustom filter to null
+      isCustom: null,  
     });
     setApplyFilters(false);  
     fetchUrls();  
   };
 
-  // Handle page change
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
   };
 
-  // Handle page size change
   const handlePageSizeChange = (newPageSize) => {
     setPageSize(newPageSize);
     setCurrentPage(1);   
@@ -122,7 +115,6 @@ const GetAllUrls = () => {
     { label: '>1000', value: '>1000' }
   ];
 
-  // Handle range filter changes (for Clicks Left and Total Clicks)
   const handleRangeFilterChange = (type, range) => {
     let from = null, to = null;
 
@@ -164,9 +156,8 @@ const GetAllUrls = () => {
     <div className="admin-urls-container min-h-screen bg-gradient-to-r from-blue-500 to-teal-500 text-white flex flex-col items-center p-6">
       <h1 className="text-3xl font-bold text-center mb-6 text-white">All URLs</h1>
 
-      {/* Common Container for Everything */}
       <div className="w-full max-w-6xl bg-white p-6 rounded-lg shadow-lg mb-8">
-        {/* Filters Row */}
+       
         <div className="flex flex-wrap justify-start gap-4 items-center mb-6">
           <Filter 
             label="Username" 
@@ -186,6 +177,7 @@ const GetAllUrls = () => {
             value={filters.actualUrl} 
             onFilterChange={handleFilterChange} 
           />
+          
           
           <div className="flex flex-col items-start gap-1 text-xs">
             <label htmlFor="clicksLeft" className="font-medium text-gray-600 text-[10px]">Clicks Left:</label>
@@ -221,12 +213,12 @@ const GetAllUrls = () => {
             </select>
           </div>
 
-          {/* Checkbox for isCustom */}
+        
           <div className="flex items-center gap-2">
             <input 
               type="checkbox" 
               id="isCustom" 
-              checked={filters.isCustom || false} // Ensure null does not cause a warning
+              checked={filters.isCustom || false} 
               onChange={(e) => handleFilterChange('isCustom', e.target.checked ? true : null)} 
               className="text-teal-500 focus:ring-teal-500"
             />
@@ -234,7 +226,7 @@ const GetAllUrls = () => {
           </div>
         </div>
 
-        {/* Apply/Remove Filters Buttons */}
+       
         <div className="flex mb-6">
           <button 
             onClick={handleApplyFilters}
@@ -250,39 +242,44 @@ const GetAllUrls = () => {
           </button>
         </div>
 
-        {/* Table Container */}
-        <div>
-          {urls && urls.length === 0 ? (
-            <div className="text-center text-lg text-black italic mt-4">No URLs found</div>
-          ) : (
-            <>
-
-            <div className="flex items-center gap-4 ml-auto">
-              <DownloadCsv
-                data={allData}   
-                headers={['username', 'shortUrl', 'actualUrl','isCustom','totalClicks','clicksLeft']}  
-                fileName="urls.csv"
-              />
-            </div>
-              <Table headers={tableHeaders} tableData={tableData} />
-
-              {/* Pagination */}
-              <div className="flex justify-between items-center mt-6">
-                <div className="flex justify-start w-1/2">
-                  <PageSize pageSize={pageSize} onPageSizeChange={handlePageSizeChange} />
-                </div>
-
-                <div className="flex justify-center w-1/2">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}  
-                    onPageChange={handlePageChange}
+         
+        {loading ? (
+          <div className="text-center text-lg text-black italic mt-4">Loading...</div>
+        ) : (
+          <>
+          
+            {urls && urls.length === 0 ? (
+              <div className="text-center text-lg text-black italic mt-4">No URLs found</div>
+            ) : (
+              <>
+                
+                <div className="flex items-center gap-4 ml-auto">
+                  <DownloadCsv
+                    data={allData}   
+                    headers={['username', 'shortUrl', 'actualUrl','isCustom','totalClicks','clicksLeft']}  
+                    fileName="urls.csv"
                   />
                 </div>
-              </div>
-            </>
-          )}
-        </div>
+                <Table headers={tableHeaders} tableData={tableData} />
+
+                
+                <div className="flex justify-between items-center mt-6">
+                  <div className="flex justify-start w-1/2">
+                    <PageSize pageSize={pageSize} onPageSizeChange={handlePageSizeChange} />
+                  </div>
+
+                  <div className="flex justify-center w-1/2">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}  
+                      onPageChange={handlePageChange}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

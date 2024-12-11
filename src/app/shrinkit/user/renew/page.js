@@ -19,7 +19,7 @@ const RenewUrlComponent = () => {
         const response = await getMyClicksPlanService();
         setPlans(response.data);
       } catch (error) {
-        showToast('Error fetching plans. Please try again.', 'error');
+        showToast('You have no plans to renew URLs');
       }
     };
 
@@ -94,14 +94,14 @@ const RenewUrlComponent = () => {
       </div>
 
       <div className="w-full max-w-3xl px-6 py-8 bg-white bg-opacity-80 rounded-lg shadow-xl mx-auto">
-        {/* Check if no plans are available */}
+      
         {plans.length === 0 ? (
           <div className="text-center text-lg text-red-500 font-semibold">
             You have no plans to renew URLs.
           </div>
         ) : (
           <>
-            {/* If plans are available, check if URLs are available */}
+            
             {urls.length === 0 ? (
               <div className="text-center text-lg text-red-500 font-semibold">
                 You have no URLs to renew.

@@ -255,6 +255,15 @@ const MyUrlsPage = () => {
                 </div>
                 <Table headers={tableHeaders} tableData={tableData} />
 
+                {/* Delete URL Button */}
+                <div className="flex justify-end mt-4">
+                  <a
+                    href="http://localhost:3000/shrinkit/user/urls/delete"
+                    className="bg-red-500 text-white px-6 py-2 rounded-md text-xs hover:bg-red-600"
+                  >
+                    Delete URL
+                  </a>
+                </div>
                  
                 <div className="flex justify-between items-center mt-6">
                   <div className="flex justify-start w-1/2">
